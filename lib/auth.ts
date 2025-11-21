@@ -1,31 +1,4 @@
-import { getSupabaseServerClient } from "./supabase/server"
 import { getSupabaseBrowserClient } from "./supabase/client"
-
-export async function getSession() {
-  const supabase = await getSupabaseServerClient()
-  try {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    return session
-  } catch (error) {
-    console.error("Error:", error)
-    return null
-  }
-}
-
-export async function getUser() {
-  const supabase = await getSupabaseServerClient()
-  try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    return user
-  } catch (error) {
-    console.error("Error:", error)
-    return null
-  }
-}
 
 export function isAdminAuthenticated() {
   if (typeof window === "undefined") return false
@@ -60,4 +33,11 @@ export async function loginAdmin(username: string, password: string) {
   }
 
   return { success: false, error: "Invalid credentials" }
+}
+
+export function logoutAdmin() {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("adminAuthenticated")
+    document.cookie = "adminAuthenticated=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+  }
 }
