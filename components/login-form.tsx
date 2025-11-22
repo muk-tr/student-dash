@@ -25,6 +25,8 @@ export function LoginForm({ onLogin }: LoginFormProps) {
     setIsLoading(true)
     setError("")
 
+    console.log(`[v0] Attempting login for ID: ${participantId}`)
+
     try {
       const { data: student, error: dbError } = await supabase
         .from("students")
@@ -32,19 +34,29 @@ export function LoginForm({ onLogin }: LoginFormProps) {
         .eq("id", participantId)
         .single()
 
+      if (dbError) {
+        console.error("[v0] Database error during login:", dbError)
+      }
+
       if (dbError || !student) {
+        console.log("[v0] Student not found or error")
         setError("Invalid participant ID. Please check your ID and try again.")
         setIsLoading(false)
         return
       }
 
+      console.log("[v0] Student found:", { id: student.id, hasPassword: !!student.password_hash })
+
+      // Compare plaintext passwords for this demo
       if (student.password_hash === password) {
+        console.log("[v0] Password match successful")
         const studentData = {
           ...student,
           password: student.password_hash,
         }
         onLogin(studentData)
       } else {
+        console.log("[v0] Password mismatch")
         setError("Invalid password. Please check your password and try again.")
       }
     } catch (err) {

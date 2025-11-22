@@ -83,7 +83,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
           id: student.id,
           name: student.name,
           email: student.email,
-          password: student.id.toLowerCase().replace("st", "") + "123", // Demo password
+          password: student.password_hash, // Use actual password from DB instead of generating a demo one
           program: student.program,
           year: student.year,
           semester: student.semester,
