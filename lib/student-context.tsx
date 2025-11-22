@@ -179,7 +179,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
         id: student.id,
         name: student.name,
         email: student.email || `${student.id.toLowerCase()}@university.edu`,
-        password_hash: "$2a$10$X8qJ9Z1Z9Z1Z9Z1Z9Z1Z9.", // Demo hash
+        password_hash: student.password,
         program: student.program,
         year: student.year,
         semester: student.semester,
@@ -214,6 +214,9 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
       if (data.avatar) {
         // Save avatar as base64 string in database
         updateData.avatar = data.avatar === "/placeholder.svg?height=100&width=100" ? null : data.avatar
+      }
+      if (data.password) {
+        updateData.password_hash = data.password
       }
 
       const { error } = await supabase.from("students").update(updateData).eq("id", studentId)
