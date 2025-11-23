@@ -53,7 +53,7 @@ export function objectsToCSV(data: any[]): string {
 
 // Generate student template CSV
 export function generateStudentTemplateCSV(): string {
-  return "id,name,email,password,program,year,semester\nST001,John Doe,john@example.com,john123,Computer Science,2025,1Qtr"
+  return "id,name,email,password,program,year,semester,parish,deanery,phone\nST001,John Doe,john@example.com,john123,Computer Science,2025,1Qtr,St. Mary Parish,Eastern Deanery,+1234567890"
 }
 
 // Generate module template CSV
@@ -68,5 +68,5 @@ export function generateProgramTemplateCSV(): string {
 
 // Generate enrollment template CSV
 export function generateEnrollmentTemplateCSV(): string {
-  return "studentId,courseId,instructor,semester,status,grade\nST001,CS101,Dr. Smith,1Qtr,In Progress,-"
+  return "studentId,courseId,mode,semester,status,grade\nST001,CS101,Physical,1Qtr,In Progress,-"
 }
