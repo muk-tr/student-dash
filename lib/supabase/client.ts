@@ -5,10 +5,9 @@ export function getSupabaseBrowserClient() {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.error("Supabase environment variables are missing. Please check your project configuration.")
-    // Return a client with empty strings to prevent initialization crash,
-    // requests will fail with authentication errors which can be handled.
-    return createBrowserClient(supabaseUrl || "", supabaseAnonKey || "")
+    console.warn("Supabase environment variables are missing. Check your .env file or Vercel project settings.")
+    // Return a dummy client that will fail gracefully on requests rather than crashing immediately
+    return createBrowserClient(supabaseUrl || "https://placeholder.supabase.co", supabaseAnonKey || "placeholder")
   }
 
   return createBrowserClient(supabaseUrl, supabaseAnonKey)
