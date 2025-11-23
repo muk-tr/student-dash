@@ -52,6 +52,7 @@ import { DataExport } from "@/components/data-export"
 import {
   generateStudentTemplateCSV,
   generateCourseTemplateCSV,
+  generateGradeTemplateCSV, // Import generateGradeTemplateCSV
   generateProgramTemplateCSV,
   generateEnrollmentTemplateCSV,
 } from "@/lib/csv-utils"
@@ -548,30 +549,81 @@ export function AdminPanel() {
     showStatus(`✅ Imported ${importCount} new modules and updated ${updateCount} existing modules`)
   }
 
-  const handleImportPrograms = (data: any[]) => {
-    let importCount = 0
+  const handleImportGrades = (data: any[]) => {
     let updateCount = 0
+    let errorCount = 0
 
     data.forEach((row) => {
-      const programName = row.name?.trim()
-      if (!programName) return
+      const studentId = row.studentId?.trim()
+      const courseId = row.courseId?.trim()
+      const grade = row.grade?.trim()
 
-      const programData = {
-        name: programName,
-        department: row.department?.trim() || "General",
-        duration: Number.parseInt(row.duration) || 4,
+      if (!studentId || !courseId || !grade) {
+        errorCount++
+        return
       }
 
-      if (programsCatalog[programName]) {
-        updateProgramInCatalog(programName, programData)
+      // Check if student exists
+      if (!students[studentId]) {
+        errorCount++
+        return
+      }
+
+      // Check if student has this course
+      const hasCourse = students[studentId].courses.some((c) => c.id === courseId)
+
+      if (!hasCourse) {
+        // If student is not enrolled, we skip or we could enroll them.
+        // For "Import Grades", usually we expect them to be enrolled.
+        // We'll count this as an error/warning
+        errorCount++
+        return
+      }
+
+      // Map grade to GPA
+      const gradeToGPA: Record<string, number> = {
+        A: 4.0,
+        "A-": 3.7,
+        "B+": 3.3,
+        B: 3.0,
+        "B-": 2.7,
+        "C+": 2.3,
+        C: 2.0,
+        F: 0.0,
+        "-": 0.0,
+      }
+
+      const gpa = gradeToGPA[grade] || 0
+
+      // Determine status based on grade
+      let status = "Registered"
+      let progress = 0
+
+      if (grade === "-") {
+        status = "Registered"
+        progress = 0
+      } else if (grade === "F") {
+        status = "Completed"
+        progress = 100
+      } else if (grade !== "-") {
+        status = "Completed"
+        progress = 100
+      }
+
+      try {
+        updateStudentCourse(studentId, courseId, {
+          grade,
+          gpa,
+          status,
+          progress,
+        })
         updateCount++
-      } else {
-        addProgramToCatalog(programName, programData)
-        importCount++
+      } catch (error) {
+        errorCount++
       }
     })
 
-    showStatus(`✅ Imported ${importCount} new programs and updated ${updateCount} existing programs`)
+    showStatus(`✅ Updated grades for ${updateCount} enrollments (${errorCount} skipped/errors)`)
   }
 
   const handleImportEnrollments = (data: any[]) => {
@@ -649,6 +701,32 @@ export function AdminPanel() {
     showStatus(`✅ Imported ${importCount} enrollments (${errorCount} errors)`)
   }
 
+  const handleImportPrograms = (data: any[]) => {
+    let importCount = 0
+    let updateCount = 0
+
+    data.forEach((row) => {
+      const programName = row.name?.trim()
+      if (!programName) return
+
+      const programData = {
+        name: programName,
+        department: row.department?.trim() || "General",
+        duration: Number.parseInt(row.duration) || 4,
+      }
+
+      if (programsCatalog[programName]) {
+        updateProgramInCatalog(programName, programData)
+        updateCount++
+      } else {
+        addProgramToCatalog(programName, programData)
+        importCount++
+      }
+    })
+
+    showStatus(`✅ Imported ${importCount} new programs and updated ${updateCount} existing programs`)
+  }
+
   // Validation functions
   const validateStudentRow = (row: any) => {
     if (!row.id) return { valid: false, message: "Student ID is required" }
@@ -662,6 +740,13 @@ export function AdminPanel() {
     if (!row.id) return { valid: false, message: "Module ID is required" }
     if (!row.name) return { valid: false, message: "Module name is required" }
     if (!row.department) return { valid: true }
+  }
+
+  const validateGradeRow = (row: any) => {
+    if (!row.studentId) return { valid: false, message: "Student ID is required" }
+    if (!row.courseId) return { valid: false, message: "Course ID is required" }
+    if (!row.grade) return { valid: false, message: "Grade is required" }
+    return { valid: true }
   }
 
   const validateProgramRow = (row: any) => {
@@ -1839,6 +1924,21 @@ export function AdminPanel() {
           </TabsContent>
 
           <TabsContent value="grades" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Import Grades</CardTitle>
+                <CardDescription>Upload a CSV file to update grades for existing enrollments.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <FileImport
+                  title="Import Grades"
+                  description="Upload a CSV file with grade updates (studentId, courseId, grade)"
+                  template={generateGradeTemplateCSV()}
+                  onImport={handleImportGrades}
+                  validateRow={validateGradeRow}
+                />
+              </CardContent>
+            </Card>
             <Card>
               <CardHeader>
                 <CardTitle>Update Grades</CardTitle>

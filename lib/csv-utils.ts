@@ -56,9 +56,9 @@ export function generateStudentTemplateCSV(): string {
   return "id,name,email,password,program,year,semester,parish,deanery,phone\nST001,John Doe,john@example.com,john123,Computer Science,2025,1Qtr,St. Mary Parish,Eastern Deanery,+1234567890"
 }
 
-// Generate module template CSV
+// Generate course template CSV
 export function generateCourseTemplateCSV(): string {
-  return "id,name,credits,department\nCS501,Advanced Programming,3,Computer Science"
+  return "id,name,credits,department,mode\nCS501,Advanced Programming,3,Computer Science,Physical"
 }
 
 // Generate program template CSV
@@ -69,4 +69,9 @@ export function generateProgramTemplateCSV(): string {
 // Generate enrollment template CSV
 export function generateEnrollmentTemplateCSV(): string {
   return "studentId,courseId,mode,semester,status,grade\nST001,CS101,Physical,1Qtr,In Progress,-"
+}
+
+// Generate grade template CSV
+export function generateGradeTemplateCSV(): string {
+  return "studentId,courseId,grade,semester\nST001,CS101,A,1Qtr"
 }
