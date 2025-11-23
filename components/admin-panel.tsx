@@ -557,8 +557,10 @@ export function AdminPanel() {
       const studentId = row.studentId?.trim()
       const courseId = row.courseId?.trim()
       const grade = row.grade?.trim()
+      const semester = row.semester?.trim() // Added semester
 
-      if (!studentId || !courseId || !grade) {
+      if (!studentId || !courseId || !grade || !semester) {
+        // Added semester to check
         errorCount++
         return
       }
@@ -569,13 +571,11 @@ export function AdminPanel() {
         return
       }
 
-      // Check if student has this course
-      const hasCourse = students[studentId].courses.some((c) => c.id === courseId)
+      // Check if student has this course for the specified semester
+      const studentCourse = students[studentId].courses.find((c) => c.id === courseId && c.semester === semester)
 
-      if (!hasCourse) {
-        // If student is not enrolled, we skip or we could enroll them.
-        // For "Import Grades", usually we expect them to be enrolled.
-        // We'll count this as an error/warning
+      if (!studentCourse) {
+        // If student is not enrolled in this course for this semester, we skip
         errorCount++
         return
       }
@@ -616,10 +616,12 @@ export function AdminPanel() {
           gpa,
           status,
           progress,
+          semester: semester, // Ensure semester is passed if it's part of the update logic
         })
         updateCount++
       } catch (error) {
         errorCount++
+        console.error(`Error updating grade for ${studentId}-${courseId} in semester ${semester}:`, error)
       }
     })
 
@@ -746,6 +748,7 @@ export function AdminPanel() {
     if (!row.studentId) return { valid: false, message: "Student ID is required" }
     if (!row.courseId) return { valid: false, message: "Course ID is required" }
     if (!row.grade) return { valid: false, message: "Grade is required" }
+    if (!row.semester) return { valid: false, message: "Semester is required" } // Added semester validation
     return { valid: true }
   }
 
@@ -1932,8 +1935,9 @@ export function AdminPanel() {
               <CardContent>
                 <FileImport
                   title="Import Grades"
-                  description="Upload a CSV file with grade updates (studentId, courseId, grade)"
-                  template={generateGradeTemplateCSV()}
+                  description="Upload a CSV file with grade updates (studentId, courseId, grade, semester)"
+                  templateFileName="grade-template.csv"
+                  templateData={generateGradeTemplateCSV()}
                   onImport={handleImportGrades}
                   validateRow={validateGradeRow}
                 />
