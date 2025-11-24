@@ -58,6 +58,7 @@ import {
 } from "@/lib/csv-utils"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { DetailedGradesView } from "@/components/detailed-grades-view"
 
 export function AdminPanel() {
   const router = useRouter()
@@ -1927,10 +1928,13 @@ export function AdminPanel() {
           </TabsContent>
 
           <TabsContent value="grades" className="space-y-6">
+            <DetailedGradesView students={Object.values(students)} />
+
+            {/* Legacy simple grade import for backwards compatibility */}
             <Card>
               <CardHeader>
-                <CardTitle>Import Grades</CardTitle>
-                <CardDescription>Upload a CSV file to update grades for existing enrollments.</CardDescription>
+                <CardTitle>Quick Grade Import (Legacy)</CardTitle>
+                <CardDescription>Upload a CSV file to update letter grades for existing enrollments.</CardDescription>
               </CardHeader>
               <CardContent>
                 <FileImport
@@ -1941,103 +1945,6 @@ export function AdminPanel() {
                   onImport={handleImportGrades}
                   validateRow={validateGradeRow}
                 />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Update Grades</CardTitle>
-                <CardDescription>Update grades for participants, organized by Deanery and Parish.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {Object.keys(students).length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <p>No participants found. Add participants first to manage their grades.</p>
-                  </div>
-                ) : (
-                  <Accordion type="multiple" className="w-full">
-                    {getStudentsByDeaneryAndParish().map((deaneryGroup, index) => (
-                      <AccordionItem key={deaneryGroup.name} value={`deanery-${index}`}>
-                        <AccordionTrigger className="text-lg font-bold bg-muted/30 px-4 rounded-t">
-                          🏛️ {deaneryGroup.name}
-                        </AccordionTrigger>
-                        <AccordionContent className="pt-2 px-2">
-                          <Accordion type="multiple" className="w-full space-y-2">
-                            {deaneryGroup.parishes.map((parishGroup, pIndex) => (
-                              <AccordionItem key={parishGroup.name} value={`parish-${index}-${pIndex}`}>
-                                <AccordionTrigger className="text-md font-semibold text-primary">
-                                  ⛪ {parishGroup.name} ({parishGroup.students.length})
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                  <div className="space-y-4 pt-2">
-                                    {parishGroup.students.map((student) => (
-                                      <div key={student.id} className="border rounded-lg p-4 bg-card shadow-sm">
-                                        <h3 className="font-semibold mb-3 flex items-center gap-2">
-                                          {student.name}{" "}
-                                          <span className="text-muted-foreground text-sm">({student.id})</span>
-                                          <Badge variant="secondary" className="text-xs">
-                                            {student.courses.length} modules
-                                          </Badge>
-                                        </h3>
-                                        <div className="space-y-2">
-                                          {student.courses.map((course: any) => (
-                                            <div
-                                              key={course.id}
-                                              className="flex items-center justify-between p-2 bg-gray-50 dark:bg-muted/50 rounded"
-                                            >
-                                              <div className="flex-1">
-                                                <span className="font-medium">{course.id}</span>
-                                                <span className="text-sm text-gray-500 ml-2">{course.name}</span>
-                                                <div className="text-xs text-gray-400">
-                                                  {course.mode || "Physical"} • {course.semester} • {course.credits}{" "}
-                                                  credits
-                                                </div>
-                                              </div>
-                                              <div className="flex items-center gap-2">
-                                                <Badge variant="outline" className="text-xs">
-                                                  {course.status}
-                                                </Badge>
-                                                <Select
-                                                  defaultValue={course.grade}
-                                                  onValueChange={(value) =>
-                                                    handleUpdateGrade(student.id, course.id, value)
-                                                  }
-                                                >
-                                                  <SelectTrigger className="w-20">
-                                                    <SelectValue />
-                                                  </SelectTrigger>
-                                                  <SelectContent>
-                                                    <SelectItem value="A">A</SelectItem>
-                                                    <SelectItem value="A-">A-</SelectItem>
-                                                    <SelectItem value="B+">B+</SelectItem>
-                                                    <SelectItem value="B">B</SelectItem>
-                                                    <SelectItem value="B-">B-</SelectItem>
-                                                    <SelectItem value="C+">C+</SelectItem>
-                                                    <SelectItem value="C">C</SelectItem>
-                                                    <SelectItem value="F">F</SelectItem>
-                                                    <SelectItem value="-">-</SelectItem>
-                                                  </SelectContent>
-                                                </Select>
-                                              </div>
-                                            </div>
-                                          ))}
-                                          {student.courses.length === 0 && (
-                                            <p className="text-center py-2 text-gray-500 text-sm">
-                                              No modules assigned
-                                            </p>
-                                          )}
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </AccordionContent>
-                              </AccordionItem>
-                            ))}
-                          </Accordion>
-                        </AccordionContent>
-                      </AccordionItem>
-                    ))}
-                  </Accordion>
-                )}
               </CardContent>
             </Card>
           </TabsContent>
