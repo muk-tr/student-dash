@@ -1,39 +1,34 @@
 "use client"
 
-import { useState } from "react"
-import { LoginForm } from "@/components/login-form"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/auth-context"
 import { Dashboard } from "@/components/dashboard"
 
 export default function Home() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [student, setStudent] = useState<any>(null)
+  const { user, isAuthenticated, isLoading } = useAuth()
+  const router = useRouter()
 
-  const handleLogin = (studentData: any) => {
-    setStudent(studentData)
-    setIsLoggedIn(true)
-  }
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push("/login")
+    }
+  }, [isLoading, isAuthenticated, router])
 
-  const handleLogout = () => {
-    setIsLoggedIn(false)
-    setStudent(null)
-  }
-
-  if (!isLoggedIn) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
-        {/* Dynamic background with gradient and pattern */}
-        <div className="absolute inset-0 opacity-10 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] filter contrast-150 brightness-100"></div>
-
-        {/* Decorative circles - subtle and deep */}
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-900/20 blur-[100px]"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-blue-900/20 blur-[100px]"></div>
-
-        <div className="relative z-10 w-full max-w-md px-4">
-          <LoginForm onLogin={handleLogin} />
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto mb-4"></div>
+          <p>Loading...</p>
         </div>
       </div>
     )
   }
 
-  return <Dashboard student={student} onLogout={handleLogout} />
+  if (!isAuthenticated || !user) {
+    return null
+  }
+
+  return <Dashboard />
 }

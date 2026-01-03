@@ -7,18 +7,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { GraduationCap, User, Lock, ArrowRight } from "lucide-react"
-import { getSupabaseBrowserClient } from "@/lib/supabase/client"
+import { useAuth } from "@/lib/auth-context"
+
 
 interface LoginFormProps {
-  onLogin: (student: any) => void
+  onLogin?: (student: any) => void // Kept for prop compatibility if needed, but likely unused in new flow
 }
 
 export function LoginForm({ onLogin }: LoginFormProps) {
+  const { login } = useAuth()
   const [participantId, setParticipantId] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const supabase = getSupabaseBrowserClient()
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,58 +28,10 @@ export function LoginForm({ onLogin }: LoginFormProps) {
     setError("")
 
     try {
-      const { data: student, error: dbError } = await supabase
-        .from("students")
-        .select("*")
-        .eq("id", participantId)
-        .single()
-
-      if (dbError) {
-        console.error("Database connection error:", dbError.message)
-        setError("Unable to connect to student database. Please try again later.")
-        setIsLoading(false)
-        return
-      }
-
-      if (!student) {
-        setError("Invalid participant ID. Please check your ID and try again.")
-        setIsLoading(false)
-        return
-      }
-
-      if (student.password_hash === password) {
-        const { data: coursesData } = await supabase.from("student_courses").select("*").eq("student_id", student.id)
-        const { data: gradeHistoryData } = await supabase.from("grade_history").select("*").eq("student_id", student.id)
-
-        const studentData = {
-          ...student,
-          password: student.password_hash,
-          courses:
-            coursesData?.map((c: any) => ({
-              id: c.course_id,
-              name: c.course_name,
-              credits: c.credits,
-              grade: c.grade || "-",
-              gpa: c.gpa || 0,
-              status: c.status,
-              progress: c.progress || 0,
-              mode: c.mode || "Physical",
-              semester: c.semester,
-            })) || [],
-          gradeHistory:
-            gradeHistoryData?.map((g: any) => ({
-              semester: g.semester,
-              gpa: g.gpa,
-            })) || [],
-        }
-
-        onLogin(studentData)
-      } else {
-        setError("Invalid password. Please check your password and try again.")
-      }
-    } catch (err) {
-      console.error("Login exception:", err)
-      setError("An unexpected error occurred. Please try again.")
+      await login(participantId, password)
+    } catch (err: any) {
+      console.error("Login failed:", err)
+      setError(err.message || "Login failed. Please check your credentials.")
     } finally {
       setIsLoading(false)
     }
