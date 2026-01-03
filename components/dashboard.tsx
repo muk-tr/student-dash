@@ -30,8 +30,11 @@ export function Dashboard() {
   if (!user) return null
 
   // Helper to format name
-  const fullName = `${user.firstName} ${user.surname} ${user.otherNames || ""}`.trim()
-  const avatarFallback = `${user.firstName[0]}${user.surname[0]}`
+  const nameParts = user.fullName.split(' ')
+  const firstName = nameParts[0]
+  const avatarFallback = nameParts.length > 1
+    ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`
+    : `${nameParts[0][0]}${nameParts[0][1] || ''}`.toUpperCase()
 
   // Calculate stats
   const completedModules = user.modules.filter(m => m.status === 'Completed')
@@ -80,9 +83,9 @@ export function Dashboard() {
                   <AvatarFallback className="bg-white/10 text-white font-bold">{avatarFallback}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <h2 className="text-2xl font-bold">Welcome back, {user.firstName}!</h2>
+                  <h2 className="text-2xl font-bold">Welcome back, {firstName}!</h2>
                   <p className="text-blue-100">
-                    {user.program?.title || "Program"} • {user.cohort || "Cohort"}
+                    {user.enrolledPrograms?.[0]?.title || "Program"}
                   </p>
                 </div>
               </div>
@@ -112,7 +115,7 @@ export function Dashboard() {
                   <User className="h-4 w-4 text-muted-foreground" />
                   <div className="overflow-hidden">
                     <p className="text-xs text-muted-foreground">Full Name</p>
-                    <p className="font-medium truncate" title={fullName}>{fullName}</p>
+                    <p className="font-medium truncate" title={user.fullName}>{user.fullName}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-2 bg-muted/50 rounded">
@@ -126,7 +129,7 @@ export function Dashboard() {
                   <Phone className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-xs text-muted-foreground">Phone</p>
-                    <p className="font-medium">{ "-"}</p>
+                    <p className="font-medium">{"-"}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-2 bg-muted/50 rounded">
@@ -183,7 +186,7 @@ export function Dashboard() {
                       <div key={mod._id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
                         <div>
                           <h4 className="font-medium">{mod.module.title}</h4>
-                          <p className="text-sm text-muted-foreground">{mod.module.code}</p>
+                          {/* <p className="text-sm text-muted-foreground">{mod.module.code}</p> Code not in schema */}
                         </div>
                         <Badge className={getStatusColor(mod.status)}>{mod.status}</Badge>
                       </div>
