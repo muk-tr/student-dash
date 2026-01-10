@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { api } from "./api"
 import { AUTH_TOKEN_KEY } from "./constants"
 
-// Matches dash-api/models/Participant.ts
 export interface IParticipant {
     _id: string;
     fullName: string;
@@ -42,8 +41,8 @@ export interface IParticipant {
 }
 
 interface AuthContextType {
-    user: IParticipant | null
-    login: (regNo: string, password: string) => Promise<void>
+    participant: IParticipant | null
+    login: (participantId: string, password: string) => Promise<void>
     logout: () => void
     isLoading: boolean
     isAuthenticated: boolean
@@ -52,9 +51,9 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<IParticipant | null>(null)
-    const [isLoading, setIsLoading] = useState(true)
-    const [isAuthenticated, setIsAuthenticated] = useState(false)
+    const [participant, setParticipant] = useState<IParticipant | null>(null)
+    const [isLoading, setIsLoading] = useState(true) // Set to true initially while checking auth
+    const [isAuthenticated, setIsAuthenticated] = useState(false) // Set to false initially
     const router = useRouter()
 
     useEffect(() => {
@@ -69,76 +68,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 return
             }
 
-            // Mock user data matching backend schema
-            const mockUser: IParticipant = {
-                _id: "mock-user-id",
-                fullName: "Test Student",
-                email: "test@student.com",
-                regNo: "TEST/2026/001",
-                division: "Test Division",
-                parish: "Test Parish",
-                deanery: "Test Deanery",
-                status: "active",
-                modules: [
-                    {
-                        _id: "m1",
-                        module: { _id: "mod1", title: "Introduction to Computer Science" },
-                        enrolledAt: new Date().toISOString(),
-                        grades: [{ name: "Midterm", score: 85, maxScore: 100 }],
-                        status: "Completed",
-                        finalScore: 85,
-                        gradeLetter: "A",
-                        gradePoint: 4.0
-                    },
-                    {
-                        _id: "m2",
-                        module: { _id: "mod2", title: "Data Structures" },
-                        enrolledAt: new Date().toISOString(),
-                        grades: [],
-                        status: "In Progress"
-                    }
-                ],
-                enrolledPrograms: [{ _id: "prog1", title: "Computer Science" }]
-            }
+            const { participant } = await api.get("/participants/me")
 
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            setUser(mockUser)
+            setParticipant(participant)
             setIsAuthenticated(true)
+
         } catch (error) {
             console.error("Auth check failed:", error)
+            logout()
         } finally {
             setIsLoading(false)
         }
     }
 
-    const login = async (regNo: string, password: string) => {
-        // Mock login - accept any credentials
-        // const { token } = await api.post("/auth/login/student", {
-        //     regNo,
-        //     password,
-        // })
+    const login = async (participantId: string, password: string) => {
+        setIsLoading(true)
+        try {
+            const { token } = await api.post("/auth/login", {
+                participantId,
+                password,
+            })
 
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+            localStorage.setItem(AUTH_TOKEN_KEY, token)
 
-        const mockToken = "mock-jwt-token";
-        localStorage.setItem(AUTH_TOKEN_KEY, mockToken)
-        await checkAuth()
-        setIsAuthenticated(true)
-        router.push("/")
+            await checkAuth()
+            router.push("/")
+        } catch (error) {
+            console.error("Login failed:", error)
+            setIsLoading(false)
+            setIsAuthenticated(false)
+            throw error
+        }
     }
 
     const logout = () => {
         localStorage.removeItem(AUTH_TOKEN_KEY)
-        setUser(null)
+        setParticipant(null)
         setIsAuthenticated(false)
         router.push("/login")
     }
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, isLoading, isAuthenticated }}>
+        <AuthContext.Provider value={{ participant, login, logout, isLoading, isAuthenticated }}>
             {children}
         </AuthContext.Provider>
     )

@@ -11,7 +11,7 @@ import { useAuth } from "@/lib/auth-context"
 
 
 interface LoginFormProps {
-  onLogin?: (student: any) => void // Kept for prop compatibility if needed, but likely unused in new flow
+  onLogin?: (student: any) => void 
 }
 
 export function LoginForm({ onLogin }: LoginFormProps) {

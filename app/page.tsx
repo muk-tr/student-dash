@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context"
 import { Dashboard } from "@/components/dashboard"
 
 export default function Home() {
-  const { user, isAuthenticated, isLoading } = useAuth()
+  const { participant, isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
@@ -26,9 +26,9 @@ export default function Home() {
     )
   }
 
-  if (!isAuthenticated || !user) {
-    return null
-  }
+  // if (!isAuthenticated) {
+  //   return null
+  // }
 
   return <Dashboard />
 }

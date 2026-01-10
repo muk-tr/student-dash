@@ -24,26 +24,23 @@ import { ParticipantGradesView } from "@/components/participant-grades-view"
 import { DetailedGradesView } from "@/components/detailed-grades-view"
 
 export function Dashboard() {
-  const { user, logout } = useAuth()
+  const { participant, logout } = useAuth()
   const [activeTab, setActiveTab] = useState("overview")
 
-  if (!user) return null
+  if (!participant) return null
 
-  // Helper to format name
-  const nameParts = user.fullName.split(' ')
+  const nameParts = participant.fullName.split(' ')
   const firstName = nameParts[0]
   const avatarFallback = nameParts.length > 1
     ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`
     : `${nameParts[0][0]}${nameParts[0][1] || ''}`.toUpperCase()
 
-  // Calculate stats
-  const completedModules = user.modules.filter(m => m.status === 'Completed')
-  const inProgressModules = user.modules.filter(m => m.status === 'In Progress')
-  const gpa = user.modules.length > 0
-    ? (user.modules.reduce((sum, m) => sum + (m.gradePoint || 0), 0) / user.modules.length).toFixed(2)
+  const completedModules = participant.modules.filter(m => m.status === 'Completed')
+  const inProgressModules = participant.modules.filter(m => m.status === 'In Progress')
+  const gpa = participant.modules.length > 0
+    ? (participant.modules.reduce((sum, m) => sum + (m.gradePoint || 0), 0) / participant.modules.length).toFixed(2)
     : "0.00"
 
-  // Status color helper
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Completed": return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
@@ -85,7 +82,7 @@ export function Dashboard() {
                 <div>
                   <h2 className="text-2xl font-bold">Welcome back, {firstName}!</h2>
                   <p className="text-blue-100">
-                    {user.enrolledPrograms?.[0]?.title || "Program"}
+                    {participant.enrolledPrograms?.[0]?.title || "Program"}
                   </p>
                 </div>
               </div>
@@ -95,7 +92,7 @@ export function Dashboard() {
                   <div className="text-blue-100 text-sm">GPA</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold">{user.modules.length}</div>
+                  <div className="text-3xl font-bold">{participant.modules.length}</div>
                   <div className="text-blue-100 text-sm">Modules</div>
                 </div>
               </div>
@@ -115,14 +112,14 @@ export function Dashboard() {
                   <User className="h-4 w-4 text-muted-foreground" />
                   <div className="overflow-hidden">
                     <p className="text-xs text-muted-foreground">Full Name</p>
-                    <p className="font-medium truncate" title={user.fullName}>{user.fullName}</p>
+                    <p className="font-medium truncate" title={participant.fullName}>{participant.fullName}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-2 bg-muted/50 rounded">
                   <Mail className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-xs text-muted-foreground">Email</p>
-                    <p className="font-medium">{user.email || "-"}</p>
+                    <p className="font-medium">{participant.email || "-"}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-2 bg-muted/50 rounded">
@@ -136,7 +133,7 @@ export function Dashboard() {
                   <MapPin className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-xs text-muted-foreground">Location</p>
-                    <p className="font-medium">{user.parish || user.deanery || "-"}</p>
+                    <p className="font-medium">{participant.parish || participant.deanery || "-"}</p>
                   </div>
                 </div>
               </div>

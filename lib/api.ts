@@ -16,12 +16,11 @@ const getHeaders = () => {
 const handleResponse = async (response: Response) => {
     if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
-            // Token is invalid or expired
+           
             if (typeof window !== "undefined") {
                 localStorage.removeItem(AUTH_TOKEN_KEY);
                 localStorage.removeItem(AUTH_ADMIN_KEY);
-                // Optional: Redirect to login if not already there
-                // window.location.href = "/login";
+                
             }
             throw new Error("Session expired. Please login again.");
         }

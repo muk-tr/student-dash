@@ -13,17 +13,17 @@ import {
 import { AlertCircle } from "lucide-react"
 
 export function DetailedGradesView() {
-  const { user, isLoading } = useAuth()
+  const { participant, isLoading } = useAuth()
 
   if (isLoading) {
     return <div>Loading...</div>
   }
 
-  if (!user) {
+  if (!participant) {
     return <div>Please log in to view grades.</div>
   }
 
-  if (user.modules.length === 0) {
+  if (participant.modules.length === 0) {
     return (
       <div className="text-center p-8 border rounded-lg bg-muted/20">
         <AlertCircle className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
@@ -43,7 +43,7 @@ export function DetailedGradesView() {
       </div>
 
       <div className="grid gap-6">
-        {user.modules.map((mod) => (
+        {participant.modules.map((mod) => (
           <Card key={mod._id}>
             <CardHeader>
               <CardTitle>{mod.module.title}</CardTitle>
