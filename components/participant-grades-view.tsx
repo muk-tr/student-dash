@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { GraduationCap, Award, CheckCircle2 } from "lucide-react"
 
 export function ParticipantGradesView() {
-  const { user, isLoading } = useAuth()
+  const { participant, isLoading } = useAuth()
 
   if (isLoading) {
     return (
@@ -18,7 +18,7 @@ export function ParticipantGradesView() {
     )
   }
 
-  if (!user) {
+  if (!participant) {
     return (
       <div className="p-4 bg-red-50 text-red-500 rounded-md">
         Unable to load user profile. Please try logging in again.
@@ -26,11 +26,11 @@ export function ParticipantGradesView() {
     )
   }
 
-  const gpa = user.modules.length > 0
-    ? (user.modules.reduce((sum, m) => sum + (m.gradePoint || 0), 0) / user.modules.length).toFixed(2)
+  const gpa = participant.modules.length > 0
+    ? (participant.modules.reduce((sum, m) => sum + (m.gradePoint || 0), 0) / participant.modules.length).toFixed(2)
     : "0.00"
 
-  const totalCredits = user.modules.length * 3 // Assuming 3 credits per module for now as fallback
+  const totalCredits = participant.modules.length * 3 // Assuming 3 credits per module for now as fallback
 
   return (
     <div className="space-y-6">
@@ -51,7 +51,7 @@ export function ParticipantGradesView() {
             <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{user.modules.length}</div>
+            <div className="text-2xl font-bold">{participant.modules.length}</div>
             <p className="text-xs text-muted-foreground">Active and completed modules</p>
           </CardContent>
         </Card>
@@ -64,17 +64,17 @@ export function ParticipantGradesView() {
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            {user.modules.length === 0 ? (
+            {participant.modules.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">No modules enrolled yet.</p>
             ) : (
-              user.modules.map((enrolledModule) => (
+              participant.modules.map((enrolledModule) => (
                 <div key={enrolledModule._id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
                   <div className="space-y-1">
                     <p className="font-medium">{enrolledModule.module.title}</p>
                     <div className="flex items-center gap-2">
                       <span className={`text-xs px-2 py-0.5 rounded-full ${enrolledModule.status === 'Completed' ? 'bg-green-100 text-green-700' :
-                          enrolledModule.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
-                            'bg-gray-100 text-gray-700'
+                        enrolledModule.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
+                          'bg-gray-100 text-gray-700'
                         }`}>
                         {enrolledModule.status}
                       </span>
